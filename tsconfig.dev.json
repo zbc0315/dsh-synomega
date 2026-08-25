@@ -1,0 +1,18 @@
+{
+  // Type-checking against the dsh runtime actually installed on this machine.
+  //
+  // The harness packages are never dependencies of this plugin — the host
+  // supplies them — so they are resolved by path instead of being installed.
+  // Do NOT symlink them into node_modules: npm follows such a link when it
+  // reconciles the dependency tree and will delete the target's contents.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    // A path mapping bypasses the package's `exports` map, so subpath entries
+    // (`.../client`) need their own rule, and it must come first.
+    "paths": {
+      "@deepseek-ai/*/client": ["../../../.dsh/profiles/node_modules/@deepseek-ai/*/lib/types/client/index.d.ts"],
+      "@deepseek-ai/*": ["../../../.dsh/profiles/node_modules/@deepseek-ai/*"]
+    }
+  }
+}

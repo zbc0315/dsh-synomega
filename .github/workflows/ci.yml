@@ -1,0 +1,39 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.19'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - run: npm ci
+
+      - name: build
+        # Tests load lib/client.js, so building first means they check the real
+        # artifact rather than whatever was committed last.
+        run: npm run build
+
+      - name: host and client tests
+        run: NODE_ENV=test node --import tsx --test "tests/*.test.ts" "tests/*.test.tsx"
+
+      - name: python contract tests
+        # Fakes stand in for synomega and rdkit: no model download, no torch.
+        run: python3 python/tests/test_ops.py
+
+# Type-checking is deliberately not run here. The @deepseek-ai/* packages are
+# supplied by the host at runtime and are not dependencies of this plugin, so it
+# needs a local dsh installation to resolve them (see tsconfig.dev.json). A CI
+# step that cannot fail would be worse than no step.

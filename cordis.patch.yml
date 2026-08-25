@@ -1,0 +1,6 @@
+# Applied when a profile lists this bundle. One row: the host plugin.
+# The client half is discovered separately, from this package's `dsh.client`
+# manifest, so it needs no row of its own.
+- insert:
+    - id: synomega
+      name: dsh-synomega

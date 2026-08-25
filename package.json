@@ -1,0 +1,110 @@
+{
+  "name": "dsh-synomega",
+  "version": "0.1.1",
+  "description": "Organic reaction prediction for DeepSeek Harness: retrosynthesis, forward prediction, route planning, SynScore, and multi-component evolution, with in-chat molecule/reaction/route visualisation",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "chemistry",
+    "cheminformatics",
+    "retrosynthesis",
+    "reaction-prediction",
+    "synthesis-planning",
+    "synomega",
+    "rdkit"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/**",
+    "python/*.py",
+    "scripts/setup.mjs",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-tool"
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.dev.json --noEmit",
+    "test": "NODE_ENV=test node --import tsx --test \"tests/*.test.ts\" \"tests/*.test.tsx\" && python3 python/tests/test_ops.py",
+    "test:py": "python3 python/tests/test_ops.py",
+    "setup": "node scripts/setup.mjs"
+  },
+  "dependencies": {
+    "d3-hierarchy": "^3.1.2",
+    "smiles-drawer": "^2.1.7"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-tools": "*",
+    "@deepseek-ai/dsh-subprocess": "*",
+    "@deepseek-ai/dsh-system-prompt": "*",
+    "@deepseek-ai/dsh-home-paths": "*",
+    "@deepseek-ai/schemastery": "*"
+  },
+  "engines": {
+    "node": ">=22.19"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@types/d3-hierarchy": "^3.1.7",
+    "@types/node": "^22.10.0",
+    "@types/react": "^18.3.1",
+    "esbuild": "^0.28.0",
+    "global-jsdom": "^25.0.0",
+    "jsdom": "^25.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "peerDependenciesMeta": {
+    "@deepseek-ai/cordis": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-tools": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-subprocess": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-system-prompt": {
+      "optional": true
+    },
+    "@deepseek-ai/dsh-home-paths": {
+      "optional": true
+    },
+    "@deepseek-ai/schemastery": {
+      "optional": true
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zbc0315/dsh-synomega.git"
+  },
+  "homepage": "https://github.com/zbc0315/dsh-synomega#readme",
+  "bugs": {
+    "url": "https://github.com/zbc0315/dsh-synomega/issues"
+  },
+  "author": "zbc0315"
+}

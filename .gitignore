@@ -1,0 +1,15 @@
+node_modules/
+*.tgz
+*.log
+.DS_Store
+
+# Build output IS committed: pnpm >= 10 refuses to run a git dependency's build
+# script, so `dsh plugin add github:zbc0315/dsh-synomega` would install a package
+# with no lib/ and fail to load. Shipping the built entry points keeps that path
+# working without asking users to approve build scripts.
+__pycache__/
+*.pyc
+
+# Source maps are regenerable by `npm run build`; the committed lib/*.js is only
+# there so a git install works without a build step.
+lib/*.map
