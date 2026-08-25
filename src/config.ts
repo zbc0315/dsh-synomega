@@ -18,6 +18,16 @@ export interface TimeoutConfig {
   evolve: number
 }
 
+/** The in-chat molecule editor. */
+export interface KetcherConfig {
+  enabled: boolean
+  /** Download at activation rather than on the first click. */
+  prefetch: boolean
+  version: string
+  /** Override the release archive location (an internal mirror, an air-gapped copy). */
+  url?: string
+}
+
 /** Search budget handed to SynOmega. Not model-facing. */
 export interface SearchConfig {
   expansionWidth: number
@@ -48,6 +58,7 @@ export interface Config {
   visualize: boolean
   maxTreeNodes: number
   maxCardItems: number
+  ketcher: KetcherConfig
   systemPrompt: boolean
 }
 
@@ -98,6 +109,16 @@ export const Config: Schema<Config> = Schema.object({
     .description('Node cap for a rendered route tree; a larger tree is truncated and labelled as such.'),
   maxCardItems: Schema.number().default(12)
     .description('Predictions or molecules projected into one card.'),
+  ketcher: Schema.object({
+    enabled: Schema.boolean().default(true)
+      .description('Offer the Ketcher molecule editor from the composer. Needs a web server in the composition.'),
+    prefetch: Schema.boolean().default(false)
+      .description('Fetch the editor at activation. Off by default: it is a 35 MB download nobody who never draws should pay for.'),
+    version: Schema.string().default('3.17.0')
+      .description('Ketcher release to install.'),
+    url: Schema.string()
+      .description('Release archive URL. Defaults to the matching GitHub release; set it to use a mirror or an offline copy.'),
+  }).description('The molecule editor behind the composer\'s benzene button.'),
   systemPrompt: Schema.boolean().default(true)
     .description('Register the prompt section that teaches the model when to use each tool.'),
 })

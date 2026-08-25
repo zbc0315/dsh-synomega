@@ -45,7 +45,7 @@ const REAL_META = {
   ],
 }
 
-interface Registration { key: string, component: (props: unknown) => unknown }
+interface Registration { slot: string, key: string, component: (props: unknown) => unknown }
 
 /** Load the bundle the way the browser module loader does. */
 function loadBundle(): { entry: Record<string, any>, registrations: Registration[] } {
@@ -67,12 +67,9 @@ function loadBundle(): { entry: Record<string, any>, registrations: Registration
 
   const ctx = {
     slots: {
-      inject(name: string, declare: () => unknown) {
-        strictEqual(name, 'tool.call.toolview')
-        declare()
-      },
-      register(spec: { name: string, key: string }, component: (props: unknown) => unknown) {
-        registrations.push({ key: spec.key, component })
+      inject(_name: string, declare: () => unknown) { declare() },
+      register(spec: { name: string, key?: string, id?: string }, component: (props: unknown) => unknown) {
+        registrations.push({ slot: spec.name, key: spec.key ?? spec.id ?? '', component })
         return () => {}
       },
     },
@@ -84,9 +81,25 @@ function loadBundle(): { entry: Record<string, any>, registrations: Registration
 test('the built bundle loads and claims the five SynOmega tool names', { skip: !existsSync(bundlePath) && 'run `npm run build` first' }, () => {
   const { entry, registrations } = loadBundle()
   strictEqual(entry['name'], 'dsh-synomega-client')
-  deepEqualKeys(registrations.map((r) => r.key), [
+  deepEqualKeys(registrations.filter((r) => r.slot === 'tool.call.toolview').map((r) => r.key), [
     'synomega_retro', 'synomega_forward', 'synomega_plan', 'synomega_score', 'synomega_evolve',
   ])
+})
+
+test('the built bundle takes the composer seat for the molecule editor', { skip: !existsSync(bundlePath) && 'run `npm run build` first' }, () => {
+  const { registrations } = loadBundle()
+  const seat = registrations.find((r) => r.slot === 'conversation.input.left')
+  ok(seat !== undefined, 'the benzene button must register into the composer tool row')
+  strictEqual(seat.key, 'synomega-ketcher')
+
+  const drafts: string[] = []
+  render(createElement(seat.component as never, {
+    session: {},
+    input: { draft: 'compare', phase: 'plain' },
+    inputActions: { setDraft: (text: string) => { drafts.push(text) } },
+  } as never))
+  ok(screen.getByLabelText('Draw a molecule'))
+  cleanup()
 })
 
 test('a view from the built bundle renders a real captured result', { skip: !existsSync(bundlePath) && 'run `npm run build` first' }, () => {

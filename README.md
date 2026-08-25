@@ -16,7 +16,8 @@ Organic reaction prediction for [DeepSeek Harness](https://github.com/deepseek-a
 backed by [SynOmega](https://github.com/zbc0315/synomega). Five model-facing tools —
 retrosynthesis, forward prediction, route planning, synthesizability scoring, and
 multi-component evolution — with molecules, reactions, and route trees drawn in the
-conversation.
+conversation, and a molecule editor in the composer so a structure can go out as a
+drawing instead of a hand-typed SMILES string.
 
 Everything runs locally. There is no API key and no remote inference: the models are
 downloaded once and evaluated on your machine.
@@ -77,6 +78,27 @@ route that cannot be bought: 1.0 when solved, 0.5 with one missing, 0.11 with tw
 when no route is found. Use `score` to rank candidates and the separate `solved`
 boolean to compare against published solve rates — they answer different questions.
 
+## Drawing a molecule
+
+Next to the composer's leading controls there is a benzene button. It opens
+[Ketcher](https://github.com/epam/ketcher) — the structure editor — over the
+conversation; **Insert** appends what you drew to the message as SMILES, leaving the
+rest of what you had typed alone.
+
+This exists because the alternative is transcription. A SMILES string typed by hand
+is easy to get subtly wrong, and a wrong one still parses: `CC(=O)Nc1ccccc1O` and
+`CC(=O)Nc1ccc(O)cc1` differ by one ring position and are different compounds.
+
+The editor is fetched once, on the first click, from its own GitHub release
+(about 35 MB, ~30 MB kept) into `$DSH_HOME/plugins/synomega/ketcher/<version>/`,
+verified against a pinned SHA-256, and then served by this harness. Serving it locally
+is what makes it same-origin — the dialog reads the drawn structure directly, and the
+editor keeps working with the network off. Nothing is downloaded until someone opens it.
+
+Set `ketcher.prefetch: true` to fetch it during activation instead, `ketcher.url` to
+point at a mirror or a `file://` copy, or `ketcher.enabled: false` to leave the button
+out entirely. Compositions with no web server (headless, CLI) never register the route.
+
 ## Visualisation
 
 The browser half registers a view for each tool on the harness's keyed
@@ -115,13 +137,19 @@ All values are set in `cordis.yml`. The ones worth knowing:
 | `timeouts` | 2 min / 10 min | Per-operation deadlines (single-step / search) |
 | `visualize` | `true` | Emit card metadata |
 | `maxTreeNodes` | `120` | Node cap for a drawn route tree |
+| `ketcher.enabled` | `true` | Offer the molecule editor from the composer |
+| `ketcher.prefetch` | `false` | Fetch the editor at activation rather than on first use |
+| `ketcher.version` | `'3.17.0'` | Ketcher release to install |
+| `ketcher.url` | — | Release archive location; `file://` works, for machines with no network |
 
 ## How it works
 
 ```
 browser   card renderers on tool.call.toolview  (smiles-drawer, d3-hierarchy)
    ^        drawn from the tool result's persisted metadata
-host      one Cordis plugin: five tools + prompt section + provisioning
+          a composer seat on conversation.input.left  (Ketcher, in a same-origin frame)
+   ^        HTTP, /dsh-synomega/ketcher
+host      one Cordis plugin: five tools + prompt section + provisioning + that route
    ^        ndjson over stdin/stdout
 python    one resident worker holding the loaded models
 ```
@@ -141,6 +169,9 @@ inference is not thread-safe, and concurrency would only make each caller slower
 - **The first call downloads a few hundred megabytes.** In air-gapped, metered, or
   reproducibility-critical environments, pre-fetch with `scripts/setup.mjs` and treat the
   download as an explicit opt-in.
+- **The molecule editor is one more download.** Ketcher ships as a 30 MB browser
+  application; it is fetched on first use rather than vendored, so a fresh install pays
+  for it once and an air-gapped one needs `ketcher.url` pointed at a local copy.
 - **Retrosynthesis is dual-use.** The prompt section defers judgment about hazardous,
   controlled, or weaponizable targets to the deployment's own safety policy; this plugin
   does not itself decide what is permissible.

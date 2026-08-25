@@ -12,7 +12,8 @@
 
 给 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的有机反应预测插件，
 底层是 [SynOmega](https://github.com/zbc0315/synomega)。五个模型可调用的工具——单步逆合成、
-单步正向预测、多步路径规划、可合成性评分、多组分演化——结果在对话里直接画成分子图、反应式和路线树。
+单步正向预测、多步路径规划、可合成性评分、多组分演化——结果在对话里直接画成分子图、反应式和路线树；
+输入框里还有一个分子画板，结构可以画出去，不必手敲 SMILES。
 
 全部在本地跑。不需要 API key，也没有远程推理：模型下载一次，之后都在你自己机器上算。
 
@@ -67,6 +68,23 @@ node node_modules/dsh-synomega/scripts/setup.mjs --no-extras --no-assets  # 只�
 用 `score` 给候选分子排序，用单独的 `solved` 布尔值跟文献的 solve rate 对比——
 这两个回答的是不同问题，不要混。
 
+## 画分子
+
+输入框左侧那排控件旁边有一个苯环按钮。点开它会在对话上方弹出
+[Ketcher](https://github.com/epam/ketcher) 分子编辑器；画完点**插入**，
+所画结构会以 SMILES 追加到当前这条消息里，你已经打好的字不动。
+
+之所以要这个：另一条路是手抄。手敲的 SMILES 很容易错得不显眼，而错的那个照样能解析——
+`CC(=O)Nc1ccccc1O` 和 `CC(=O)Nc1ccc(O)cc1` 只差一个取代位，却是两种化合物。
+
+编辑器在**第一次点击时**从它自己的 GitHub release 下载一次（约 35 MB，留下约 30 MB），
+存进 `$DSH_HOME/plugins/synomega/ketcher/<版本>/`，用写死的 SHA-256 校验，之后由本 harness 自己伺服。
+本地伺服才使它与主页面**同源**——对话框能直接读出所画的结构，断网后编辑器照常可用。
+没人打开画板就不会下载任何东西。
+
+想改行为：`ketcher.prefetch: true` 改成激活时就下；`ketcher.url` 指向镜像或 `file://` 本地副本；
+`ketcher.enabled: false` 干脆不要这个按钮。没有 web 服务的组合（headless、命令行）根本不会注册这条路由。
+
 ## 可视化
 
 浏览器侧在 harness 的 keyed slot `tool.call.toolview` 上为每个工具注册了一个视图，
@@ -102,13 +120,19 @@ node node_modules/dsh-synomega/scripts/setup.mjs --no-extras --no-assets  # 只�
 | `timeouts` | 2 分钟 / 10 分钟 | 各操作的超时（单步 / 搜索） |
 | `visualize` | `true` | 是否产出卡片元数据 |
 | `maxTreeNodes` | `120` | 画路线树时的节点上限 |
+| `ketcher.enabled` | `true` | 是否在输入框提供分子画板 |
+| `ketcher.prefetch` | `false` | 激活时就下载画板，而不是等第一次用 |
+| `ketcher.version` | `'3.17.0'` | 安装哪个 Ketcher 版本 |
+| `ketcher.url` | — | 发行包地址；支持 `file://`，给没有网络的机器用 |
 
 ## 工作原理
 
 ```
 浏览器   在 tool.call.toolview 上注册的卡片（smiles-drawer、d3-hierarchy）
    ↑       画的是工具结果里持久化的那份元数据
-Host    一个 Cordis 插件：五个工具 + 提示词段落 + 环境准备
+        在 conversation.input.left 上占的一个座位（同源 iframe 里的 Ketcher）
+   ↑       HTTP，/dsh-synomega/ketcher
+Host    一个 Cordis 插件：五个工具 + 提示词段落 + 环境准备 + 那条路由
    ↑       ndjson 走 stdin/stdout
 Python  一个常驻 worker，模型加载后一直留在内存里
 ```
@@ -123,6 +147,9 @@ Python 侧常驻是因为 SynOmega 加载模型要好几秒；每次调用都付
 - **预测是排序过的候选，不是保证。** 正向预测 top-1 在基准上约 0.64；路线是提案，不是验证过的实验步骤。
 - **首次调用要下几百 MB。** 断网、计费网络、或者要求可复现的环境里，
   请先用 `scripts/setup.mjs` 预取，把下载当成一件需要明确同意的事。
+- **分子画板是另一笔下载。** Ketcher 本身是个 30 MB 的浏览器应用；
+  它是首次使用时才取，而不是打包进插件，所以新装的环境要付一次这个代价，
+  完全断网的环境需要把 `ketcher.url` 指到本地副本。
 - **逆合成是双用途技术。** 提示词段落把"什么是可以做的"这个判断交给部署自身的安全策略；
   本插件不自行决定哪些请求可以满足。
 

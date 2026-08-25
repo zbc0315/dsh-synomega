@@ -22,9 +22,11 @@ import { forwardTool, retroTool } from './tools/singlestep.ts'
 import { planTool, scoreTool } from './tools/planning.ts'
 import { evolveTool } from './tools/evolution.ts'
 import { SYNOMEGA_GUIDANCE, SYNOMEGA_SECTION_NAME, SYNOMEGA_SECTION_ORDER } from './prompt.ts'
+import { KetcherAssets, serveKetcher } from './ketcher.ts'
 
 export { Config } from './config.ts'
 export type { BootstrapStatus } from './bootstrap.ts'
+export type { KetcherState } from './shared/ketcher.ts'
 
 export const name = 'dsh-synomega'
 
@@ -77,6 +79,15 @@ export function apply(ctx: Context, config: Config): void {
     } else {
       ctx.logger?.info?.('synomega: no usable systemPrompt service; tool guidance was not registered')
     }
+  }
+
+  // The molecule editor is a browser affordance, so it only exists where there
+  // is a browser: `ctx.inject` keeps the route out of a headless composition
+  // instead of guarding every call site.
+  const ketcher = new KetcherAssets(ctx, config, stateDir)
+  if (config.ketcher.enabled) {
+    serveKetcher(ctx, ketcher)
+    ketcher.start()
   }
 
   // The worker owns a child process, so its teardown is an explicit effect
