@@ -22,6 +22,15 @@ drawing instead of a hand-typed SMILES string.
 Everything runs locally. There is no API key and no remote inference: the models are
 downloaded once and evaluated on your machine.
 
+<p align="center">
+  <img src="figures/retro.png" alt="A route-planning card: the target at the top, a two-step tree down to two purchasable starting materials, with a SynScore card beneath it" width="720">
+</p>
+
+<p align="center">
+  <em>"How do I make this molecule?" — the model plans a route and scores it. Two steps,
+  both starting materials purchasable, per-step scores on the edges, SynScore 1.000.</em>
+</p>
+
 ## Install
 
 ```sh
@@ -120,6 +129,24 @@ complete one.
 Cards are drawn purely from metadata persisted on the tool result, so reopening an old
 conversation reproduces the same picture. Deployments without the browser UI (headless,
 CLI) get the text rendering; no information is lost, only the drawing.
+
+### Forward prediction
+
+<img src="figures/forward.png" alt="A forward-prediction card: five candidate products, each drawn as reactants arrow product with a score bar" width="720">
+
+Acetic acid and methanol, ranked five deep. Methyl acetate takes 0.9308 and the rest are
+three orders of magnitude behind — the model reads that as Fischer esterification and
+says so. Note the disambiguation in its answer: `CO` is methanol, not carbon monoxide
+(`C#O`), which is exactly the class of mistake the composer's molecule editor exists to
+prevent.
+
+### Multi-component evolution
+
+<img src="figures/multi.png" alt="A multi-component evolution card: molecules laid out in depth columns, each with a cumulative score" width="720">
+
+Butanone, urea, and benzaldehyde evolved forward into 450 molecules over 683 reaction
+edges, laid out by depth with each molecule's cumulative score. Depth 0 is what you put
+in; everything to the right is what the network reached.
 
 ## Configuration
 
