@@ -24,11 +24,16 @@ downloaded once and evaluated on your machine.
 ## Install
 
 ```sh
-dsh plugin --profile <name> add github:zbc0315/dsh-synomega
+dsh plugin --profile web add github:zbc0315/dsh-synomega
 ```
 
+`web` is the profile to install into — a profile is one named composition of
+plugins under `$DSH_HOME/profiles/`, and `dsh web` boots the one literally named
+`web`. Use whichever profile you actually start; naming one that does not exist
+creates it.
+
 The built entry points are committed, so a git install needs no build step and no
-`allowBuilds` approval. (Once this is on npm, `dsh plugin --profile <name> add
+`allowBuilds` approval. (Once this is on npm, `dsh plugin --profile web add
 dsh-synomega` will work the same way.)
 
 Start the harness once afterwards. On first activation the plugin provisions its own
