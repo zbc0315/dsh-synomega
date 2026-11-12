@@ -14,7 +14,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 import type { SubprocessHandle } from '@deepseek-ai/dsh-subprocess'
-import type { JsonValue } from '@deepseek-ai/dsh-session'
+import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { Config } from './config.ts'
 
 /** Resolved interpreter and environment for the worker process. */

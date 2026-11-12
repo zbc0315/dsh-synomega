@@ -95,7 +95,7 @@ test('the built bundle takes the composer seat for the molecule editor', { skip:
   const drafts: string[] = []
   render(createElement(seat.component as never, {
     session: {},
-    input: { draft: 'compare', phase: 'plain' },
+    useInput: (selector: (state: { draft: string, phase: string }) => unknown) => selector({ draft: 'compare', phase: 'plain' }),
     inputActions: { setDraft: (text: string) => { drafts.push(text) } },
   } as never))
   ok(screen.getByLabelText('Draw a molecule'))

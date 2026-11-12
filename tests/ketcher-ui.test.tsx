@@ -29,7 +29,7 @@ function stubState(state: KetcherState): void {
 function seat(draft: string, drafts: string[]) {
   return (
     <KetcherSeat
-      input={{ draft, phase: 'plain' }}
+      useInput={(selector) => selector({ draft, phase: 'plain' })}
       inputActions={{ setDraft: (text: string) => { drafts.push(text) } }}
     />
   )

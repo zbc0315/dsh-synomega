@@ -14,12 +14,14 @@
  * @module dsh-synomega/client
  */
 
-import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
+import type { Context as ClientContext } from '@deepseek-ai/cordis'
 // Type-only side-effect import: `tool.call.toolview` is declared on SlotMap by
 // the tool UI package, and without this the key does not exist for us.
 import type {} from '@deepseek-ai/dsh-client-ui-tool/client'
 // Likewise for `conversation.input.left`, the composer's tool-row seat.
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
+// And for `ctx.slots` itself, which the renderer declares on Context.
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { SynomegaToolView } from './cards.tsx'
 import { KetcherSeat, type ComposerSeatProps } from './Ketcher.tsx'
 

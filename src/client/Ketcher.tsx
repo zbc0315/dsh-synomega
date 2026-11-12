@@ -26,15 +26,22 @@ interface KetcherApi {
   getSmiles(extended?: boolean): Promise<string>
 }
 
+/** The slice of the composer's input state this seat reads. */
+export interface SeatInput {
+  draft: string
+  phase: string
+}
+
 /**
  * The props this seat actually reads.
  *
- * The composer hands every input-zone entry the conversation snapshot and the
- * live input state; only the draft and the write verb matter here, so the seat
- * is typed against that subset and stays renderable in a test.
+ * The composer hands every input-zone entry the Session's input state as a
+ * selector hook plus the stable write verbs; only the draft, the phase, and
+ * `setDraft` matter here, so the seat is typed against that subset and stays
+ * renderable in a test.
  */
 export interface ComposerSeatProps {
-  input: { draft: string, phase: string }
+  useInput: <T>(selector: (state: SeatInput) => T) => T
   inputActions: { setDraft(text: string): void }
 }
 
@@ -42,9 +49,10 @@ export interface ComposerSeatProps {
  * Append a drawn structure to the draft.
  *
  * A SMILES string run onto the end of a word is a different string, so a
- * separator is added unless the draft already ends in whitespace. Appending
- * rather than replacing also leaves every reference chip in the draft at its
- * recorded offset.
+ * separator is added unless the draft already ends in whitespace. The caller
+ * writes the result back with `setDraft`, which replaces the draft as plain
+ * text: that is the one verb the input machine exposes for a whole-draft write,
+ * and it drops any inline reference chips the draft carried.
  */
 export function appendSmiles(draft: string, smiles: string): string {
   if (draft === '') return smiles
@@ -72,9 +80,13 @@ function BenzeneIcon(): ReactElement {
  */
 export function KetcherSeat(props: ComposerSeatProps): ReactElement {
   const [open, setOpen] = useState(false)
-  const busy = props.input.phase === 'submitting'
+  // `claimed` is not busy: a slash command is claimed but still editable, and
+  // this seat only appends. The three frozen phases all refuse typing, so the
+  // button must refuse too.
+  const busy = props.useInput((state) =>
+    state.phase === 'adjudicating' || state.phase === 'submitting' || state.phase === 'sending')
 
-  const draft = props.input.draft
+  const draft = props.useInput((state) => state.draft)
   const actions = props.inputActions
   const insert = useCallback((smiles: string) => {
     actions.setDraft(appendSmiles(draft, smiles))

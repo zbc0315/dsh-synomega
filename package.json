@@ -1,6 +1,6 @@
 {
   "name": "dsh-synomega",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Organic reaction prediction for DeepSeek Harness: retrosynthesis, forward prediction, route planning, SynScore, and multi-component evolution, with in-chat molecule/reaction/route visualisation",
   "keywords": [
     "dsh",
@@ -37,7 +37,6 @@
     "client": {
       "platform": "web",
       "inject": [
-        "@deepseek-ai/dsh-client-runtime",
         "@deepseek-ai/dsh-client-ui-conversation",
         "@deepseek-ai/dsh-client-ui-tool"
       ]

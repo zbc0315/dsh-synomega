@@ -14,7 +14,7 @@
  */
 
 import type { ContentBlock } from '@deepseek-ai/dsh-llm'
-import type { JsonValue } from '@deepseek-ai/dsh-session'
+import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 import type { ToolRunContext } from '@deepseek-ai/dsh-tools'
 import type { Config } from '../config.ts'
 import type { Bootstrap } from '../bootstrap.ts'

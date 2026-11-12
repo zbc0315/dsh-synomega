@@ -13,7 +13,7 @@ import type { ToolDefinition } from '@deepseek-ai/dsh-tools'
 import {
   asCanonical, boundTree, describeRoute, field, missingLeaves, runOp, text, type ToolDeps,
 } from './shared.ts'
-import type { JsonValue } from '@deepseek-ai/dsh-session'
+import type { JsonValue } from '@deepseek-ai/dsh-util-values'
 
 interface RouteRecord {
   solved: boolean
