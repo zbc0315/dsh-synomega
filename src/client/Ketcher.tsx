@@ -26,10 +26,16 @@ interface KetcherApi {
   getSmiles(extended?: boolean): Promise<string>
 }
 
+/**
+ * The composer's submit plane. `adjudicating`, `submitting`, and `sending` all
+ * make the editor read-only; `claimed` leaves it writable.
+ */
+export type SeatInputPhase = 'plain' | 'adjudicating' | 'claimed' | 'submitting' | 'sending'
+
 /** The slice of the composer's input state this seat reads. */
 export interface SeatInput {
   draft: string
-  phase: string
+  phase: SeatInputPhase
 }
 
 /**

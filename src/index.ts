@@ -28,7 +28,7 @@ export { Config } from './config.ts'
 export type { BootstrapStatus } from './bootstrap.ts'
 export type { KetcherState } from './shared/ketcher.ts'
 
-export const name = 'dsh-synomega'
+export const name = '@tom2012/dsh-synomega'
 
 /**
  * `tools` and `subprocess` are hard requirements — without either, this plugin

@@ -3,4 +3,4 @@
 # manifest, so it needs no row of its own.
 - insert:
     - id: synomega
-      name: dsh-synomega
+      name: "@tom2012/dsh-synomega"

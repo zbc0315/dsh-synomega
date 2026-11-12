@@ -43,8 +43,11 @@ plugins under `$DSH_HOME/profiles/`, and `dsh web` boots the one literally named
 creates it.
 
 The built entry points are committed, so a git install needs no build step and no
-`allowBuilds` approval. (Once this is on npm, `dsh plugin --profile web add
-dsh-synomega` will work the same way.)
+`allowBuilds` approval. The package is also on npm:
+
+```sh
+dsh plugin --profile web add @tom2012/dsh-synomega
+```
 
 Start the harness once afterwards. On first activation the plugin provisions its own
 Python environment in the background — a Python 3.12 virtualenv under
@@ -63,8 +66,8 @@ interpreter itself; otherwise point the `python` config at an existing 3.10+ one
 To provision ahead of time instead of on first activation:
 
 ```sh
-node node_modules/dsh-synomega/scripts/setup.mjs            # with the neural backend
-node node_modules/dsh-synomega/scripts/setup.mjs --no-extras --no-assets   # template backend only
+node node_modules/@tom2012/dsh-synomega/scripts/setup.mjs            # with the neural backend
+node node_modules/@tom2012/dsh-synomega/scripts/setup.mjs --no-extras --no-assets   # template backend only
 ```
 
 ## Tools

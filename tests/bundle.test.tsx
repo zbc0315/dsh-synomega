@@ -2,7 +2,7 @@
  * The published client bundle, exercised as the browser would load it.
  *
  * Every other client test imports the source. This one loads `lib/client.js` —
- * the file actually served at `/plugins/dsh-synomega/client.js` — through a
+ * the file actually served at `/plugins/<package>/client.js` — through a
  * stand-in module loader, registers its views the way the harness does, and
  * renders one with metadata captured verbatim from a real session log. It is
  * the closest thing to a browser check that runs without a browser, and it
@@ -27,6 +27,7 @@ import { createElement } from 'react'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const bundlePath = join(here, '..', 'lib', 'client.js')
+const packageName = JSON.parse(readFileSync(join(here, '..', 'package.json'), 'utf8')).name as string
 
 /**
  * Metadata copied from a real `tool/result` event: the model called
@@ -56,7 +57,7 @@ function loadBundle(): { entry: Record<string, any>, registrations: Registration
   const globals = globalThis as Record<string, any>
   globals['window'].__ModuleLoader__ = {
     load(descriptor: { id: string, factory: (req: (name: string) => unknown) => unknown }) {
-      strictEqual(descriptor.id, 'dsh-synomega', 'the bundle must announce the package name')
+      strictEqual(descriptor.id, packageName, 'the bundle must announce the package name')
       entry = descriptor.factory((name: string) => nodeRequire(name)) as Record<string, any>
     },
   }

@@ -37,7 +37,11 @@ dsh plugin --profile web add github:zbc0315/dsh-synomega
 你平时怎么启动 dsh，就装进哪个 profile；写一个不存在的名字会自动创建。
 
 构建产物已随仓库提交，所以从 git 安装不需要构建步骤，也不需要 `allowBuilds` 授权。
-（发到 npm 之后，`dsh plugin --profile web add dsh-synomega` 效果相同。）
+包也发在 npm 上：
+
+```sh
+dsh plugin --profile web add @tom2012/dsh-synomega
+```
 
 装完启动一次 dsh 即可。首次激活时插件会在后台把 Python 侧准备好——在
 `$DSH_HOME/plugins/synomega` 下建一个 Python 3.12 虚拟环境，`pip install synomega[gnn]`，
@@ -54,8 +58,8 @@ dsh plugin --profile web add github:zbc0315/dsh-synomega
 想提前装好而不是等首次激活：
 
 ```sh
-node node_modules/dsh-synomega/scripts/setup.mjs                          # 含神经后端
-node node_modules/dsh-synomega/scripts/setup.mjs --no-extras --no-assets  # 只装纯模板后端
+node node_modules/@tom2012/dsh-synomega/scripts/setup.mjs                          # 含神经后端
+node node_modules/@tom2012/dsh-synomega/scripts/setup.mjs --no-extras --no-assets  # 只装纯模板后端
 ```
 
 ## 五个工具
