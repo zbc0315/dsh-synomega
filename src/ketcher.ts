@@ -48,6 +48,24 @@ export function defaultArchiveUrl(version: string): string {
 }
 
 /**
+ * Copies of the same archive on hosts that are reachable where GitHub is not.
+ *
+ * GitHub releases are the canonical source; these are byte-identical mirrors,
+ * so the pinned digest verifies a mirror exactly as it verifies the original.
+ * The list is per version because a mirror URL names the file it serves.
+ */
+const MIRRORS: Readonly<Record<string, readonly string[]>> = {
+  '3.17.0': [
+    'https://git.ustc.edu.cn/-/project/9893/uploads/e3463c809d5927755c1414ba06146c69/ketcher-standalone-3.17.0.zip',
+  ],
+}
+
+/** Every source to try for one version, canonical first. */
+export function archiveUrls(version: string): string[] {
+  return [defaultArchiveUrl(version), ...(MIRRORS[version] ?? [])]
+}
+
+/**
  * The release ships four separate demo entry points, each embedding its own
  * 30 MB copy of the editor. Only `index.html` is used, so the other three are
  * dropped: it is 88 MB of the 119 MB archive.
@@ -56,6 +74,9 @@ const UNUSED_ENTRIES = ['duo.', 'popup.', 'closable.']
 
 /** Written once extraction succeeds; its presence is what "ready" means. */
 const STAMP = '.ready.json'
+
+/** How long one source has to answer before the next one is tried. */
+const CONNECT_TIMEOUT_MS = 20_000
 
 /** How long to wait for another process that is already provisioning. */
 const OTHER_PROVISIONER_WAIT_MS = 20 * 60_000
@@ -160,17 +181,37 @@ export class KetcherAssets {
     }
 
     const version = this.#config.ketcher.version
-    const url = this.#config.ketcher.url ?? defaultArchiveUrl(version)
+    // An explicit url is the operator's choice and stands alone; the default
+    // walks the canonical source and then its mirrors.
+    const candidates = this.#config.ketcher.url === undefined ? archiveUrls(version) : [this.#config.ketcher.url]
     this.#state = { ...this.#state, phase: 'downloading', detail: `downloading Ketcher ${version} (about 35 MB)` }
 
-    const archive = await download(url)
-
+    // Only the built-in source chain is verified: an operator-supplied url may
+    // point at a repack or a local build that the upstream digest would reject.
     const expected = this.#config.ketcher.url === undefined ? KNOWN_DIGESTS[version] : undefined
-    if (expected !== undefined) {
-      const actual = createHash('sha256').update(archive).digest('hex')
-      if (actual !== expected) {
-        throw new Error(`the Ketcher ${version} archive did not match its pinned checksum (got ${actual})`)
+    let url = candidates[0]!
+    let archive: Buffer | undefined
+    const failures: string[] = []
+    for (const candidate of candidates) {
+      try {
+        const body = await download(candidate)
+        if (expected !== undefined) {
+          const actual = createHash('sha256').update(body).digest('hex')
+          if (actual !== expected) {
+            throw new Error(`did not match the pinned checksum (got ${actual})`)
+          }
+        }
+        archive = body
+        url = candidate
+        break
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        failures.push(`${candidate}: ${message}`)
+        this.#ctx.logger?.warn?.('synomega: Ketcher source failed, trying the next one (%s)', message)
       }
+    }
+    if (archive === undefined) {
+      throw new Error(`downloading Ketcher ${version} failed from every source:\n${failures.join('\n')}`)
     }
 
     this.#state = { ...this.#state, phase: 'extracting', detail: 'unpacking the editor' }
@@ -199,7 +240,18 @@ export class KetcherAssets {
  */
 async function download(url: string): Promise<Buffer> {
   if (url.startsWith('file:')) return Buffer.from(await readFile(fileURLToPath(url)))
-  const response = await fetch(url)
+  // A blocked host accepts the connection and then says nothing, so the mirror
+  // list is only reachable if an attempt gives up on its own. The deadline
+  // covers arriving at a response, not the body: 35 MB on a slow link is slow,
+  // not broken.
+  const abort = new AbortController()
+  const deadline = setTimeout(() => { abort.abort(new Error(`no response within ${CONNECT_TIMEOUT_MS / 1000}s`)) }, CONNECT_TIMEOUT_MS)
+  let response: Response
+  try {
+    response = await fetch(url, { signal: abort.signal })
+  } finally {
+    clearTimeout(deadline)
+  }
   if (!response.ok) throw new Error(`downloading Ketcher failed: ${response.status} ${response.statusText} (${url})`)
   return Buffer.from(await response.arrayBuffer())
 }

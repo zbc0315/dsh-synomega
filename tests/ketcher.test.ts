@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import {
-  KetcherAssets, commonDirectory, createKetcherHandler, defaultArchiveUrl, extractApp, resolveWithin,
+  KetcherAssets, archiveUrls, commonDirectory, createKetcherHandler, defaultArchiveUrl, extractApp, resolveWithin,
 } from '../src/ketcher.ts'
 import { KETCHER_ROUTE, KETCHER_STATE_PATH } from '../src/shared/ketcher.ts'
 import type { Config } from '../src/config.ts'
@@ -89,6 +89,14 @@ test('a request cannot walk out of the extraction root', () => {
 
 test('the default archive URL names the release the version asks for', () => {
   ok(defaultArchiveUrl('3.17.0').endsWith('/v3.17.0/ketcher-standalone-3.17.0.zip'))
+})
+
+test('every pinned version has a mirror to try after GitHub', () => {
+  const urls = archiveUrls('3.17.0')
+  strictEqual(urls[0], defaultArchiveUrl('3.17.0'), 'the canonical source comes first')
+  ok(urls.length > 1, 'a mirror must follow, so a blocked GitHub still installs')
+  ok(urls.slice(1).every((url) => url.endsWith('/ketcher-standalone-3.17.0.zip')), 'a mirror names the same file')
+  strictEqual(archiveUrls('9.9.9').length, 1, 'an unpinned version falls back to GitHub alone')
 })
 
 /** Serve one handler on a loopback port for the duration of `body`. */

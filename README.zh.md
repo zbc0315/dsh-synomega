@@ -43,6 +43,9 @@ dsh plugin --profile web add github:zbc0315/dsh-synomega
 dsh plugin --profile web add @tom2012/dsh-synomega
 ```
 
+编辑器首次使用时才下载：先试 GitHub release，失败再试 USTC GitLab 上的镜像，
+所以在 GitHub 不可达的网络里也能装上。两处是同样的字节，钉住的 SHA-256 对哪一份都校验。
+
 装完启动一次 dsh 即可。首次激活时插件会在后台把 Python 侧准备好——在
 `$DSH_HOME/plugins/synomega` 下建一个 Python 3.12 虚拟环境，`pip install synomega[gnn]`，
 然后下载逆合成模型、可购砌块库和正向模型（合计约 450 MB，只下一次）。这个过程**不会挡住 dsh 启动**；

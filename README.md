@@ -49,6 +49,10 @@ The built entry points are committed, so a git install needs no build step and n
 dsh plugin --profile web add @tom2012/dsh-synomega
 ```
 
+The editor is fetched on first use, from the GitHub release and then from a
+mirror on USTC GitLab, so a network that blocks GitHub still installs. Both
+copies are the same bytes and the pinned SHA-256 verifies either one.
+
 Start the harness once afterwards. On first activation the plugin provisions its own
 Python environment in the background — a Python 3.12 virtualenv under
 `$DSH_HOME/plugins/synomega`, `pip install synomega[gnn]`, then the retrosynthesis
